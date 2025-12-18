@@ -1,10 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import OrderDetailsModal from '@/components/OrderDetailsModal';
 
 export default function AdminOrders() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     fetchOrders();
@@ -20,6 +23,11 @@ export default function AdminOrders() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const viewOrderDetails = (order: any) => {
+    setSelectedOrder(order);
+    setIsModalOpen(true);
   };
 
   const updateOrderStatus = async (orderId: string, status: string) => {
@@ -117,7 +125,10 @@ export default function AdminOrders() {
                     {new Date(order.createdAt).toLocaleDateString('en-IN')}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <button className="text-blue-600 hover:text-blue-900 font-medium transition-colors">
+                    <button
+                      onClick={() => viewOrderDetails(order)}
+                      className="text-blue-600 hover:text-blue-900 font-medium transition-colors"
+                    >
                       View Details
                     </button>
                   </td>
@@ -127,6 +138,13 @@ export default function AdminOrders() {
           </table>
         </div>
       )}
+
+      {/* Order Details Modal */}
+      <OrderDetailsModal
+        order={selectedOrder}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   );
 }
