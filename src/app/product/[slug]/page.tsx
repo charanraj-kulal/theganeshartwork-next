@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import ProductClient from '@/components/ProductClient';
+import ProductImageGallery from '@/components/ProductImageGallery';
 
 interface ProductPageProps {
   params: Promise<{
@@ -53,41 +54,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-8">
             {/* Product Image Gallery */}
-            <div className="space-y-4">
-              <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden relative border-2 border-gray-200">
-                {product.onSale && (
-                  <span className="absolute top-4 left-4 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full z-10">
-                    Sale!
-                  </span>
-                )}
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                  id="mainImage"
-                />
-              </div>
-              
-              {/* Thumbnail Gallery */}
-              <div className="grid grid-cols-4 gap-2">
-                {(() => {
-                  const showcaseImages = product.images ? JSON.parse(product.images) : [];
-                  const allImages = [product.image, ...showcaseImages];
-                  return allImages.map((img: string, i: number) => (
-                    <div 
-                      key={i} 
-                      className="aspect-square bg-gray-100 rounded border-2 border-gray-200 overflow-hidden cursor-pointer hover:border-orange-500 transition-colors"
-                      onClick={() => {
-                        const mainImg = document.getElementById('mainImage') as HTMLImageElement;
-                        if (mainImg) mainImg.src = img;
-                      }}
-                    >
-                      <img src={img} alt={`View ${i + 1}`} className="w-full h-full object-cover" />
-                    </div>
-                  ));
-                })()}
-              </div>
-            </div>
+            <ProductImageGallery
+              mainImage={product.image}
+              showcaseImages={product.images ? JSON.parse(product.images) : []}
+              productName={product.name}
+              onSale={product.onSale}
+            />
 
             {/* Product Info */}
             <div className="space-y-6">
