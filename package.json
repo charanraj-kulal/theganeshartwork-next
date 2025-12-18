@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",
-    "vercel-build": "prisma generate --schema=./prisma/schema.production.prisma && prisma db push --schema=./prisma/schema.production.prisma --accept-data-loss && next build",
+    "vercel-build": "prisma generate --schema=./prisma/schema.production.prisma && prisma db push --schema=./prisma/schema.production.prisma --accept-data-loss && node prisma/seed.production.js && next build",
     "migrate:prod": "prisma migrate deploy --schema=./prisma/schema.production.prisma",
     "start": "next start",
     "lint": "next lint",
