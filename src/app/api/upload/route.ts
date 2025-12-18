@@ -1,58 +1,37 @@
 import { NextResponse } from 'next/server';
-import { put } from '@vercel/blob';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   try {
-    const formData = await request.formData();
-    const file = formData.get('file') as File;
+    const body = await request.json();
+    const { imageUrl } = body;
     
-    if (!file) {
+    if (!imageUrl) {
       return NextResponse.json(
-        { error: 'No file provided' },
+        { error: 'No image URL provided' },
         { status: 400 }
       );
     }
 
-    // Validate file type
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-    if (!allowedTypes.includes(file.type)) {
+    // Validate URL format
+    try {
+      new URL(imageUrl);
+    } catch {
       return NextResponse.json(
-        { error: 'Invalid file type. Only JPEG, PNG, and WebP are allowed' },
+        { error: 'Invalid URL format' },
         { status: 400 }
       );
     }
-
-    // Validate file size (max 5MB)
-    const maxSize = 5 * 1024 * 1024;
-    if (file.size > maxSize) {
-      return NextResponse.json(
-        { error: 'File too large. Maximum size is 5MB' },
-        { status: 400 }
-      );
-    }
-
-    // Generate unique filename
-    const timestamp = Date.now();
-    const originalName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-    const filename = `products/${timestamp}-${originalName}`;
-
-    // Upload to Vercel Blob
-    const blob = await put(filename, file, {
-      access: 'public',
-      addRandomSuffix: false,
-    });
 
     return NextResponse.json({
       success: true,
-      imageUrl: blob.url,
-      filename: blob.pathname,
+      imageUrl: imageUrl,
     });
   } catch (error) {
-    console.error('Error uploading file:', error);
+    console.error('Error processing image URL:', error);
     return NextResponse.json(
-      { error: 'Failed to upload file' },
+      { error: 'Failed to process image URL' },
       { status: 500 }
     );
   }
