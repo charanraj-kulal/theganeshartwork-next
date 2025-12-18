@@ -55,11 +55,6 @@ export default function AddProduct() {
     });
   };
 
-  const handleImageUrlChange = (url: string) => {
-    setFormData({ ...formData, image: url });
-    setImagePreview(url);
-  };
-
   const handleImageUpload = async (file: File, isMain: boolean, index?: number) => {
     if (!file) return;
 
