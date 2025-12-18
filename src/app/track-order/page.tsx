@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Search, Package, Truck, CheckCircle, XCircle, Clock } from 'lucide-react';
 
-export default function TrackOrder() {
+function TrackOrderContent() {
   const searchParams = useSearchParams();
   const [orderNumber, setOrderNumber] = useState('');
   const [email, setEmail] = useState('');
@@ -306,5 +306,21 @@ export default function TrackOrder() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function TrackOrder() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">Loading...</h1>
+          </div>
+        </div>
+      </div>
+    }>
+      <TrackOrderContent />
+    </Suspense>
   );
 }
