@@ -58,8 +58,17 @@ export async function POST(request: Request) {
 
     const product = await prisma.product.create({
       data: {
-        ...data,
+        name: data.name,
+        slug: data.slug,
+        description: data.description,
+        price: data.price,
+        originalPrice: data.originalPrice,
         categoryId: data.categoryId,
+        image: data.image,
+        images: data.images || null,
+        inStock: data.inStock,
+        featured: data.featured,
+        onSale: data.onSale,
       },
       include: {
         category: true,
@@ -109,6 +118,7 @@ export async function PUT(request: Request) {
         originalPrice: data.originalPrice,
         categoryId: data.categoryId,
         image: data.image,
+        images: data.images || null,
         inStock: data.inStock,
         featured: data.featured,
         onSale: data.onSale,
