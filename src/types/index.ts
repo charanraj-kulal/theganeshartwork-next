@@ -4,6 +4,7 @@ export interface Product {
   price: number;
   slug: string;
   image: string;
+  images?: string; // JSON string of additional showcase images
   category: string;
   onSale: boolean;
   inStock: boolean;

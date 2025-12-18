@@ -30,6 +30,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     originalPrice: dbProduct.originalPrice ?? undefined,
     slug: dbProduct.slug,
     image: dbProduct.image,
+    images: dbProduct.images ?? undefined,
     category: dbProduct.category.name,
     onSale: dbProduct.onSale,
     inStock: true,
