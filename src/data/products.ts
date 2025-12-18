@@ -1,0 +1,152 @@
+import { Product } from '@/types';
+
+export const products: Product[] = [
+  {
+    id: 1,
+    name: "Photo Restoration Service",
+    price: 499,
+    slug: "photo-restoration",
+    image: "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=500&h=500&fit=crop",
+    category: "Restoration",
+    onSale: false,
+    inStock: true,
+    featured: true,
+    description: "Restore old, damaged photos to their former glory. Professional restoration service."
+  },
+  {
+    id: 2,
+    name: "Photo Merging Service",
+    price: 799,
+    slug: "photo-merging",
+    image: "https://images.unsplash.com/photo-1452457508653-b285b53f55e2?w=500&h=500&fit=crop",
+    category: "Merging",
+    onSale: false,
+    inStock: true,
+    featured: true,
+    description: "Merge multiple photos into one beautiful frame. Perfect for family memories."
+  },
+  {
+    id: 3,
+    name: "Imaginary Art Frame",
+    price: 1299,
+    slug: "imaginary-art",
+    image: "https://images.unsplash.com/photo-1549887534-1541e9326642?w=500&h=500&fit=crop",
+    category: "Imaginary Art",
+    onSale: true,
+    originalPrice: 1599,
+    inStock: true,
+    featured: true,
+    description: "Transform your photos into stunning imaginary art pieces."
+  },
+  {
+    id: 4,
+    name: "Oil Painting / Smudge Art",
+    price: 1499,
+    slug: "oil-painting-smudge-art",
+    image: "https://images.unsplash.com/photo-1561214115-f2f134cc4912?w=500&h=500&fit=crop",
+    category: "Oil Painting",
+    onSale: true,
+    originalPrice: 1799,
+    inStock: true,
+    featured: true,
+    description: "Convert your photos into beautiful oil painting or smudge art style."
+  },
+  {
+    id: 5,
+    name: "Wooden Clog Frame",
+    price: 899,
+    slug: "wooden-clog",
+    image: "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=500&h=500&fit=crop",
+    category: "Wooden Clog",
+    onSale: false,
+    inStock: true,
+    featured: true,
+    description: "Premium wooden clog frames for a rustic, elegant look."
+  },
+  {
+    id: 6,
+    name: "Collage Photo Frame",
+    price: 699,
+    slug: "collage-frame",
+    image: "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=500&h=500&fit=crop",
+    category: "Collage",
+    onSale: false,
+    inStock: true,
+    featured: true,
+    description: "Create stunning photo collages with multiple images in one frame."
+  },
+  // Additional variations
+  {
+    id: 7,
+    name: "Premium Photo Restoration",
+    price: 799,
+    slug: "premium-photo-restoration",
+    image: "https://images.unsplash.com/photo-1582139329536-e7284fece509?w=500&h=500&fit=crop",
+    category: "Restoration",
+    onSale: false,
+    inStock: true,
+    featured: false,
+    description: "Advanced restoration for severely damaged photos with color correction."
+  },
+  {
+    id: 8,
+    name: "Family Photo Merging",
+    price: 999,
+    slug: "family-photo-merging",
+    image: "https://images.unsplash.com/photo-1516802273409-68526ee1bdd6?w=500&h=500&fit=crop",
+    category: "Merging",
+    onSale: false,
+    inStock: true,
+    featured: false,
+    description: "Merge family photos from different times into one memorable frame."
+  },
+  {
+    id: 9,
+    name: "Custom Imaginary Background",
+    price: 1499,
+    slug: "custom-imaginary-background",
+    image: "https://images.unsplash.com/photo-1566041510632-c8e88a35f1f9?w=500&h=500&fit=crop",
+    category: "Imaginary Art",
+    onSale: false,
+    inStock: true,
+    featured: false,
+    description: "Place your photo in any imaginary setting or background."
+  },
+  {
+    id: 10,
+    name: "Canvas Oil Painting",
+    price: 1999,
+    slug: "canvas-oil-painting",
+    image: "https://images.unsplash.com/photo-1579762715118-a6f1d4b934f1?w=500&h=500&fit=crop",
+    category: "Oil Painting",
+    onSale: true,
+    originalPrice: 2399,
+    inStock: true,
+    featured: false,
+    description: "High-quality canvas print with oil painting effect."
+  },
+  {
+    id: 11,
+    name: "Rustic Wooden Clog",
+    price: 1099,
+    slug: "rustic-wooden-clog",
+    image: "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=500&h=500&fit=crop",
+    category: "Wooden Clog",
+    onSale: false,
+    inStock: true,
+    featured: false,
+    description: "Handcrafted rustic wooden clog frame with natural finish."
+  },
+  {
+    id: 12,
+    name: "Large Collage Frame",
+    price: 1299,
+    slug: "large-collage-frame",
+    image: "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=500&h=500&fit=crop",
+    category: "Collage",
+    onSale: false,
+    inStock: true,
+    featured: false,
+    description: "Large format collage frame for 10+ photos."
+  },
+];
