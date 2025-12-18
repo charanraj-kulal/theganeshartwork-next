@@ -29,6 +29,9 @@ export default function ProductClient({ product }: ProductClientProps) {
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(product.image); // For image gallery
+  const showcaseImages = product.images ? JSON.parse(product.images) : [];
+  const allImages = [product.image, ...showcaseImages];
 
   const calculatedPrice = Math.round(product.price * selectedSize.priceMultiplier);
   

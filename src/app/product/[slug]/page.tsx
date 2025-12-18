@@ -51,7 +51,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-8">
-            {/* Product Image */}
+            {/* Product Image Gallery */}
             <div className="space-y-4">
               <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden relative border-2 border-gray-200">
                 {product.onSale && (
@@ -63,16 +63,28 @@ export default async function ProductPage({ params }: ProductPageProps) {
                   src={product.image}
                   alt={product.name}
                   className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                  id="mainImage"
                 />
               </div>
               
-              {/* Thumbnail Gallery (placeholder) */}
+              {/* Thumbnail Gallery */}
               <div className="grid grid-cols-4 gap-2">
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="aspect-square bg-gray-100 rounded border-2 border-gray-200 overflow-hidden cursor-pointer hover:border-orange-500 transition-colors">
-                    <img src={product.image} alt={`View ${i}`} className="w-full h-full object-cover" />
-                  </div>
-                ))}
+                {(() => {
+                  const showcaseImages = product.images ? JSON.parse(product.images) : [];
+                  const allImages = [product.image, ...showcaseImages];
+                  return allImages.map((img: string, i: number) => (
+                    <div 
+                      key={i} 
+                      className="aspect-square bg-gray-100 rounded border-2 border-gray-200 overflow-hidden cursor-pointer hover:border-orange-500 transition-colors"
+                      onClick={() => {
+                        const mainImg = document.getElementById('mainImage') as HTMLImageElement;
+                        if (mainImg) mainImg.src = img;
+                      }}
+                    >
+                      <img src={img} alt={`View ${i + 1}`} className="w-full h-full object-cover" />
+                    </div>
+                  ));
+                })()}
               </div>
             </div>
 
