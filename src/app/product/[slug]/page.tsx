@@ -40,19 +40,19 @@ export default async function ProductPage({ params }: ProductPageProps) {
   };
 
   return (
-    <main className="min-h-screen bg-white py-8">
-      <div className="container mx-auto px-4">
+    <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-8">
+      <div className="container mx-auto px-4 max-w-7xl">
         {/* Breadcrumb */}
-        <nav className="mb-6 text-sm">
-          <Link href="/" className="text-gray-500 hover:text-orange-500">Home</Link>
-          <span className="mx-2 text-gray-400">/</span>
-          <Link href="/products" className="text-gray-500 hover:text-orange-500">Products</Link>
-          <span className="mx-2 text-gray-400">/</span>
-          <span className="text-gray-900">{product.name}</span>
+        <nav className="mb-8 flex items-center gap-2 text-sm">
+          <Link href="/" className="text-gray-600 hover:text-orange-600 transition-colors">Home</Link>
+          <span className="text-gray-400">›</span>
+          <Link href="/products" className="text-gray-600 hover:text-orange-600 transition-colors">Products</Link>
+          <span className="text-gray-400">›</span>
+          <span className="text-gray-900 font-medium">{product.name}</span>
         </nav>
 
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-8">
+        <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 p-8 lg:p-12">
             {/* Product Image Gallery */}
             <ProductImageGallery
               mainImage={product.image}
@@ -63,57 +63,85 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
             {/* Product Info */}
             <div className="space-y-6">
+              {/* Title */}
               <div>
-                <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-3 leading-tight">
                   {product.name}
                 </h1>
-                
-                <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
-                  <p className="text-sm font-semibold text-green-800">
-                    🚚 Delivering in just 24-48 hours in BIDAR & KALABURAGI
-                  </p>
-                    <p className="text-xs text-green-700 mt-1">
-                    Guaranteed Delivery by: {new Date(Date.now() + 6 * 24 * 60 * 60 * 1000).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' })} in Karnataka
+                <p className="text-gray-600 flex items-center gap-2">
+                  <span className="inline-block w-2 h-2 bg-green-500 rounded-full"></span>
+                  In Stock
+                </p>
+              </div>
+
+              {/* Delivery Info */}
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4 shadow-sm">
+                <div className="flex items-start gap-3">
+                  <svg className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                  </svg>
+                  <div>
+                    <p className="text-sm font-semibold text-green-900">
+                      🚚 Fast Delivery in BIDAR & KALABURAGI
                     </p>
+                    <p className="text-xs text-green-700 mt-1">
+                      Get it by {new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })} (2 days)
+                    </p>
+                  </div>
                 </div>
               </div>
 
-              <div className="border-t border-b border-gray-200 py-4">
+              {/* Price Section */}
+              <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl p-6 border border-orange-200">
                 {product.originalPrice && (
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-sm text-gray-500">Original price was:</span>
-                    <span className="text-lg text-gray-400 line-through">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="text-sm text-gray-600">MRP:</span>
+                    <span className="text-xl text-gray-500 line-through">
                       ₹{product.originalPrice.toLocaleString()}
+                    </span>
+                    <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+                      {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF
                     </span>
                   </div>
                 )}
                 
-                <div className="flex items-baseline gap-2">
-                  <span className="text-sm text-gray-600">Current price is:</span>
-                  <span className="text-4xl font-bold text-orange-500">
+                <div className="flex items-baseline gap-3">
+                  <span className="text-sm text-gray-700 font-medium">Price:</span>
+                  <span className="text-4xl font-bold text-orange-600">
                     ₹{product.price.toLocaleString()}
                   </span>
                 </div>
+                <p className="text-xs text-gray-600 mt-2">Inclusive of all taxes</p>
               </div>
 
-              <div className="space-y-4 mb-6">
-                <div className="flex items-center gap-2 text-gray-700">
-                  <svg className="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span>Fast delivery</span>
-                </div>
-                <div className="flex items-center gap-2 text-gray-700">
-                  <svg className="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span>Cash on Delivery Available</span>
-                </div>
-                <div className="flex items-center gap-2 text-gray-700">
-                  <svg className="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span>24-48 Hours Delivery in Bidar & Kalaburagi</span>
+              {/* Features */}
+              <div className="space-y-3">
+                <h3 className="font-semibold text-gray-900 text-lg mb-4">Why Choose Us?</h3>
+                <div className="grid gap-3">
+                  <div className="flex items-center gap-3 bg-gray-50 rounded-lg p-3">
+                    <div className="flex-shrink-0 w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
+                      <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                    </div>
+                    <span className="text-gray-700 font-medium">Fast 24-48 Hour Delivery</span>
+                  </div>
+                  <div className="flex items-center gap-3 bg-gray-50 rounded-lg p-3">
+                    <div className="flex-shrink-0 w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                      <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                      </svg>
+                    </div>
+                    <span className="text-gray-700 font-medium">Cash on Delivery Available</span>
+                  </div>
+                  <div className="flex items-center gap-3 bg-gray-50 rounded-lg p-3">
+                    <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                      <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                      </svg>
+                    </div>
+                    <span className="text-gray-700 font-medium">100% Quality Guaranteed</span>
+                  </div>
                 </div>
               </div>
 
