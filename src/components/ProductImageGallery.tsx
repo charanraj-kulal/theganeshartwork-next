@@ -20,7 +20,8 @@ export default function ProductImageGallery({
   const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
   const imageRef = useRef<HTMLDivElement>(null);
   
-  const allImages = [mainImage, ...showcaseImages.filter(img => img)];
+  // Filter out empty images and create array with main image first
+  const allImages = [mainImage, ...showcaseImages.filter(img => img && img.trim() !== '')];
 
   const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
     if (!imageRef.current) return;
@@ -37,7 +38,8 @@ export default function ProductImageGallery({
       {/* Main Image with Zoom */}
       <div 
         ref={imageRef}
-        className="relative aspect-square bg-gray-50 rounded-xl overflow-hidden border border-gray-200 shadow-md group"
+        className="relative bg-white rounded-xl overflow-hidden border-2 border-gray-200 shadow-lg group"
+        style={{ aspectRatio: '1/1' }}
         onMouseEnter={() => setShowZoom(true)}
         onMouseLeave={() => setShowZoom(false)}
         onMouseMove={handleMouseMove}
@@ -54,7 +56,7 @@ export default function ProductImageGallery({
         <img
           src={selectedImage}
           alt={productName}
-          className="w-full h-full object-contain transition-opacity duration-300"
+          className="w-full h-full object-cover transition-opacity duration-300"
           style={{ opacity: showZoom ? 0 : 1 }}
         />
         
@@ -77,18 +79,19 @@ export default function ProductImageGallery({
         </div>
       </div>
       
-      {/* Thumbnail Gallery */}
-      {allImages.length > 1 && (
-        <div className="flex gap-3 overflow-x-auto pb-2">
+      {/* Thumbnail Gallery - Always visible */}
+      <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
           {allImages.map((img: string, i: number) => (
             <button
               key={i}
               onClick={() => setSelectedImage(img)}
-              className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden transition-all duration-200 ${
+              className={`flex-shrink-0 rounded-lg overflow-hidden transition-all duration-200 border-4 ${
                 selectedImage === img 
-                  ? 'ring-2 ring-orange-500 ring-offset-2 scale-105 shadow-lg' 
-                  : 'ring-2 ring-gray-200 hover:ring-orange-300 hover:scale-105'
+                  ? 'border-orange-500 scale-105 shadow-xl' 
+                  : 'border-gray-300 hover:border-orange-300 hover:scale-105 shadow-md'
               }`}
+              style={{ width: '100px', height: '100px' }}
             >
               <img 
                 src={img} 
@@ -98,14 +101,16 @@ export default function ProductImageGallery({
             </button>
           ))}
         </div>
-      )}
-      
-      {/* Image Counter */}
-      {allImages.length > 1 && (
-        <p className="text-center text-sm text-gray-500">
-          {allImages.indexOf(selectedImage) + 1} of {allImages.length} images
-        </p>
-      )}
+        
+        {/* Image Counter */}
+        {allImages.length > 1 && (
+          <div className="text-center mt-3">
+            <p className="text-sm font-medium text-gray-600">
+              Viewing {allImages.indexOf(selectedImage) + 1} of {allImages.length} images
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
