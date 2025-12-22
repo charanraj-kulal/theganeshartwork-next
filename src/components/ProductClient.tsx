@@ -34,9 +34,6 @@ export default function ProductClient({ product }: ProductClientProps) {
   const allImages = [product.image, ...showcaseImages];
 
   const calculatedPrice = Math.round(product.price * selectedSize.priceMultiplier);
-  
-  // Check if product is collage type
-  const isCollageProduct = product.slug.includes('collage');
 
   // Razorpay payment integration
   const initiateRazorpayPayment = async (order: any, checkoutData: CheckoutData, uploadedImageFile: File | null) => {
@@ -148,8 +145,8 @@ export default function ProductClient({ product }: ProductClientProps) {
       return;
     }
 
-    // For non-collage products, require image upload
-    if (!isCollageProduct && !uploadedImage) {
+    // Require image upload for all products
+    if (!uploadedImage) {
       toast.error('Please upload an image first');
       return;
     }
@@ -194,8 +191,8 @@ export default function ProductClient({ product }: ProductClientProps) {
   };
 
   const handleBuyNow = () => {
-    // For non-collage products, require image upload
-    if (!isCollageProduct && !uploadedImage) {
+    // Require image upload for all products
+    if (!uploadedImage) {
       toast.error('Please upload an image first');
       return;
     }
@@ -310,7 +307,7 @@ export default function ProductClient({ product }: ProductClientProps) {
   return (
     <>
       {/* Size Selector */}
-      <div className="space-y-3 mb-6">
+      <div className="space-y-3 mb-6 text-gray-900">
         <label className="text-gray-900 font-bold text-lg block">Select Frame Size (in inches)</label>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {frameSizes.map((size) => (
@@ -337,12 +334,11 @@ export default function ProductClient({ product }: ProductClientProps) {
         </div>
       </div>
 
-      {/* Image Upload - Required for non-collage products */}
-      {!isCollageProduct && (
-        <div className="space-y-3 mb-6">
-          <label className="text-gray-900 font-bold text-lg block">
-            Upload Your Photo <span className="text-red-500">*</span>
-          </label>
+      {/* Image Upload - Required */}
+      <div className="space-y-3 mb-6">
+        <label className="text-gray-900 font-bold text-lg block">
+          Upload Your Photo <span className="text-red-500">*</span>
+        </label>
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-500 transition-colors">
             <input
               type="file"
@@ -353,43 +349,41 @@ export default function ProductClient({ product }: ProductClientProps) {
             />
             <label htmlFor="image-upload" className="cursor-pointer">
               {uploadedImage ? (
-                <div className="space-y-2">
-                  <svg className="w-12 h-12 text-green-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <p className="text-green-700 font-medium">{uploadedImage.name}</p>
-                  <p className="text-sm text-gray-500">Click to change image</p>
+                <div className="space-y-3">
+                  <div className="relative w-32 h-32 mx-auto">
+                    <img 
+                      src={URL.createObjectURL(uploadedImage)} 
+                      alt="Uploaded preview" 
+                      className="w-full h-full object-cover rounded-lg border-2 border-green-500 shadow-lg"
+                    />
+                    <div className="absolute top-2 right-2 bg-green-500 rounded-full p-1">
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  </div>
+                  <p className="text-green-700 font-medium text-sm">{uploadedImage.name}</p>
+                  <p className="text-xs text-gray-600">Click to change image</p>
                 </div>
               ) : (
                 <div className="space-y-2">
                   <svg className="w-12 h-12 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                   </svg>
-                  <p className="text-gray-700 font-medium">Click to upload your photo</p>
-                  <p className="text-sm text-gray-500">Max size: 10MB (JPG, PNG)</p>
+                  <p className="text-gray-900 font-medium">Click to upload your photo</p>
+                  <p className="text-sm text-gray-600">Max size: 10MB (JPG, PNG)</p>
                 </div>
               )}
             </label>
           </div>
-          <p className="text-sm text-gray-600 bg-blue-50 border border-blue-200 rounded-lg p-3">
-            📸 Your design will be shared within 4 hours for approval before printing
-          </p>
-        </div>
-      )}
-
-      {/* Collage Info */}
-      {isCollageProduct && (
-        <div className="mb-6 bg-amber-50 border border-amber-200 rounded-lg p-4">
-          <p className="text-sm text-amber-800">
-            📧 For collage products, you can send multiple photos via email after placing the order. 
-            We'll send you instructions at your registered email.
-          </p>
-        </div>
-      )}
+        <p className="text-sm text-gray-900 bg-blue-50 border border-blue-200 rounded-lg p-3">
+          📸 <span className="font-semibold">Your design will be shared within 4 hours for approval before printing</span>
+        </p>
+      </div>
 
       {/* Quantity */}
       <div className="space-y-4 mb-6">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 text-gray-900">
           <label className="text-gray-700 font-semibold">Quantity:</label>
           <div className="flex items-center border border-gray-300 rounded-lg">
             <button 

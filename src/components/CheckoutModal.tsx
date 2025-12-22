@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { X } from 'lucide-react';
 
 interface CheckoutModalProps {
@@ -31,45 +31,70 @@ export default function CheckoutModal({ isOpen, onClose, onSubmit, isProcessing,
     city: '',
     state: 'Karnataka',
     pincode: '',
-    paymentMethod: 'cod',
+    paymentMethod: 'online', // Default to online payment only
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof CheckoutData, string>>>({});
 
+  // Refs for scrolling to errors
+  const nameRef = useRef<HTMLInputElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const phoneRef = useRef<HTMLInputElement>(null);
+  const addressRef = useRef<HTMLTextAreaElement>(null);
+  const cityRef = useRef<HTMLInputElement>(null);
+  const pincodeRef = useRef<HTMLInputElement>(null);
+
   const validateForm = () => {
     const newErrors: Partial<Record<keyof CheckoutData, string>> = {};
+    let firstErrorRef: any = null;
 
     if (!formData.customerName.trim()) {
       newErrors.customerName = 'Name is required';
+      if (!firstErrorRef) firstErrorRef = nameRef;
     }
 
     if (!formData.customerEmail.trim()) {
       newErrors.customerEmail = 'Email is required';
+      if (!firstErrorRef) firstErrorRef = emailRef;
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.customerEmail)) {
       newErrors.customerEmail = 'Invalid email format';
+      if (!firstErrorRef) firstErrorRef = emailRef;
     }
 
     if (!formData.customerPhone.trim()) {
       newErrors.customerPhone = 'Phone is required';
+      if (!firstErrorRef) firstErrorRef = phoneRef;
     } else if (!/^\d{10}$/.test(formData.customerPhone.replace(/\s/g, ''))) {
       newErrors.customerPhone = 'Phone must be 10 digits';
+      if (!firstErrorRef) firstErrorRef = phoneRef;
     }
 
     if (!formData.shippingAddress.trim()) {
       newErrors.shippingAddress = 'Address is required';
+      if (!firstErrorRef) firstErrorRef = addressRef;
     }
 
     if (!formData.city.trim()) {
       newErrors.city = 'City is required';
+      if (!firstErrorRef) firstErrorRef = cityRef;
     }
 
     if (!formData.pincode.trim()) {
       newErrors.pincode = 'Pincode is required';
+      if (!firstErrorRef) firstErrorRef = pincodeRef;
     } else if (!/^\d{6}$/.test(formData.pincode)) {
       newErrors.pincode = 'Pincode must be 6 digits';
+      if (!firstErrorRef) firstErrorRef = pincodeRef;
     }
 
     setErrors(newErrors);
+
+    // Scroll to first error
+    if (firstErrorRef && firstErrorRef.current) {
+      firstErrorRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      firstErrorRef.current.focus();
+    }
+
     return Object.keys(newErrors).length === 0;
   };
 
@@ -125,16 +150,24 @@ export default function CheckoutModal({ isOpen, onClose, onSubmit, isProcessing,
                 Full Name <span className="text-red-500">*</span>
               </label>
               <input
+                ref={nameRef}
                 type="text"
                 value={formData.customerName}
                 onChange={(e) => handleChange('customerName', e.target.value)}
-                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent ${
-                  errors.customerName ? 'border-red-500' : 'border-gray-300'
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent transition-colors ${
+                  errors.customerName ? 'border-red-500 bg-red-50 animate-shake' : 'border-gray-300'
                 }`}
                 placeholder="Enter your full name"
                 disabled={isProcessing}
               />
-              {errors.customerName && <p className="text-red-500 text-sm mt-1">{errors.customerName}</p>}
+              {errors.customerName && (
+                <p className="text-red-500 text-sm mt-1 flex items-center">
+                  <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  {errors.customerName}
+                </p>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -143,16 +176,24 @@ export default function CheckoutModal({ isOpen, onClose, onSubmit, isProcessing,
                   Email <span className="text-red-500">*</span>
                 </label>
                 <input
+                  ref={emailRef}
                   type="email"
                   value={formData.customerEmail}
                   onChange={(e) => handleChange('customerEmail', e.target.value)}
-                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent ${
-                    errors.customerEmail ? 'border-red-500' : 'border-gray-300'
+                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent transition-colors ${
+                    errors.customerEmail ? 'border-red-500 bg-red-50 animate-shake' : 'border-gray-300'
                   }`}
                   placeholder="your@email.com"
                   disabled={isProcessing}
                 />
-                {errors.customerEmail && <p className="text-red-500 text-sm mt-1">{errors.customerEmail}</p>}
+                {errors.customerEmail && (
+                  <p className="text-red-500 text-sm mt-1 flex items-center">
+                    <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    {errors.customerEmail}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -160,16 +201,25 @@ export default function CheckoutModal({ isOpen, onClose, onSubmit, isProcessing,
                   Phone Number <span className="text-red-500">*</span>
                 </label>
                 <input
+                  ref={phoneRef}
                   type="tel"
                   value={formData.customerPhone}
                   onChange={(e) => handleChange('customerPhone', e.target.value)}
-                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent ${
-                    errors.customerPhone ? 'border-red-500' : 'border-gray-300'
+                  maxLength={10}
+                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent transition-colors ${
+                    errors.customerPhone ? 'border-red-500 bg-red-50 animate-shake' : 'border-gray-300'
                   }`}
                   placeholder="9876543210"
                   disabled={isProcessing}
                 />
-                {errors.customerPhone && <p className="text-red-500 text-sm mt-1">{errors.customerPhone}</p>}
+                {errors.customerPhone && (
+                  <p className="text-red-500 text-sm mt-1 flex items-center">
+                    <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    {errors.customerPhone}
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -183,16 +233,24 @@ export default function CheckoutModal({ isOpen, onClose, onSubmit, isProcessing,
                 Full Address <span className="text-red-500">*</span>
               </label>
               <textarea
+                ref={addressRef}
                 value={formData.shippingAddress}
                 onChange={(e) => handleChange('shippingAddress', e.target.value)}
                 rows={3}
-                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent resize-none ${
-                  errors.shippingAddress ? 'border-red-500' : 'border-gray-300'
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent resize-none transition-colors ${
+                  errors.shippingAddress ? 'border-red-500 bg-red-50 animate-shake' : 'border-gray-300'
                 }`}
                 placeholder="House No., Street, Area"
                 disabled={isProcessing}
               />
-              {errors.shippingAddress && <p className="text-red-500 text-sm mt-1">{errors.shippingAddress}</p>}
+              {errors.shippingAddress && (
+                <p className="text-red-500 text-sm mt-1 flex items-center">
+                  <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  {errors.shippingAddress}
+                </p>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -201,16 +259,24 @@ export default function CheckoutModal({ isOpen, onClose, onSubmit, isProcessing,
                   City <span className="text-red-500">*</span>
                 </label>
                 <input
+                  ref={cityRef}
                   type="text"
                   value={formData.city}
                   onChange={(e) => handleChange('city', e.target.value)}
-                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent ${
-                    errors.city ? 'border-red-500' : 'border-gray-300'
+                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent transition-colors ${
+                    errors.city ? 'border-red-500 bg-red-50 animate-shake' : 'border-gray-300'
                   }`}
                   placeholder="City"
                   disabled={isProcessing}
                 />
-                {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
+                {errors.city && (
+                  <p className="text-red-500 text-sm mt-1 flex items-center">
+                    <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    {errors.city}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -239,17 +305,25 @@ export default function CheckoutModal({ isOpen, onClose, onSubmit, isProcessing,
                   Pincode <span className="text-red-500">*</span>
                 </label>
                 <input
+                  ref={pincodeRef}
                   type="text"
                   value={formData.pincode}
                   onChange={(e) => handleChange('pincode', e.target.value)}
-                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent ${
-                    errors.pincode ? 'border-red-500' : 'border-gray-300'
+                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent transition-colors ${
+                    errors.pincode ? 'border-red-500 bg-red-50 animate-shake' : 'border-gray-300'
                   }`}
                   placeholder="560001"
                   maxLength={6}
                   disabled={isProcessing}
                 />
-                {errors.pincode && <p className="text-red-500 text-sm mt-1">{errors.pincode}</p>}
+                {errors.pincode && (
+                  <p className="text-red-500 text-sm mt-1 flex items-center">
+                    <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    {errors.pincode}
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -258,50 +332,41 @@ export default function CheckoutModal({ isOpen, onClose, onSubmit, isProcessing,
           <div className="space-y-4 mb-6">
             <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Payment Method</h3>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <label
-                className={`relative flex items-center p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                  formData.paymentMethod === 'online'
-                    ? 'border-gray-900 bg-gray-50'
-                    : 'border-gray-300 hover:border-gray-400'
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="paymentMethod"
-                  value="online"
-                  checked={formData.paymentMethod === 'online'}
-                  onChange={(e) => handleChange('paymentMethod', e.target.value as 'online' | 'cod')}
-                  className="mr-3 w-5 h-5 text-gray-900 focus:ring-gray-500"
-                  disabled={isProcessing}
-                />
-                <div>
-                  <div className="font-semibold text-gray-900">Pay Online</div>
-                  <div className="text-sm text-gray-600">Razorpay (Cards, UPI, Wallets)</div>
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-6">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 mt-1">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+                    <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    </svg>
+                  </div>
                 </div>
-              </label>
-
-              <label
-                className={`relative flex items-center p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                  formData.paymentMethod === 'cod'
-                    ? 'border-gray-900 bg-gray-50'
-                    : 'border-gray-300 hover:border-gray-400'
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="paymentMethod"
-                  value="cod"
-                  checked={formData.paymentMethod === 'cod'}
-                  onChange={(e) => handleChange('paymentMethod', e.target.value as 'online' | 'cod')}
-                  className="mr-3 w-5 h-5 text-gray-900 focus:ring-gray-500"
-                  disabled={isProcessing}
-                />
-                <div>
-                  <div className="font-semibold text-gray-900">Cash on Delivery</div>
-                  <div className="text-sm text-gray-600">Pay when you receive</div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <h4 className="font-bold text-gray-900 text-lg">Secure Online Payment</h4>
+                    <span className="bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">SAFE</span>
+                  </div>
+                  <p className="text-sm text-gray-700 mb-3">
+                    Pay securely using Razorpay payment gateway
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="bg-white px-3 py-1 rounded-full text-xs font-semibold text-gray-700 border border-gray-200">Credit Card</span>
+                    <span className="bg-white px-3 py-1 rounded-full text-xs font-semibold text-gray-700 border border-gray-200">Debit Card</span>
+                    <span className="bg-white px-3 py-1 rounded-full text-xs font-semibold text-gray-700 border border-gray-200">UPI</span>
+                    <span className="bg-white px-3 py-1 rounded-full text-xs font-semibold text-gray-700 border border-gray-200">Net Banking</span>
+                    <span className="bg-white px-3 py-1 rounded-full text-xs font-semibold text-gray-700 border border-gray-200">Wallets</span>
+                  </div>
                 </div>
-              </label>
+              </div>
+            </div>
+            
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+              <p className="text-xs text-yellow-800 flex items-center gap-2">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+                <span className="font-semibold">Cash on Delivery is not available. We only accept online payments for faster processing.</span>
+              </p>
             </div>
           </div>
 

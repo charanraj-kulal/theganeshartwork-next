@@ -154,7 +154,7 @@ export default function CartPage() {
                         {/* Quantity Controls */}
                         <div className="flex items-center gap-4 mb-4">
                           <span className="text-sm font-semibold text-gray-700">Quantity:</span>
-                          <div className="flex items-center border-2 border-gray-300 rounded-lg overflow-hidden">
+                          <div className="flex items-center border-2 border-gray-300 font-semibold text-gray-900 rounded-lg overflow-hidden">
                             <button 
                               onClick={() => handleUpdateQuantity(item.productId, item.quantity - 1)}
                               className="p-2 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"

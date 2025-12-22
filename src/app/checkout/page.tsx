@@ -3,7 +3,7 @@
 import { useCartStore } from '@/store/cartStore';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { toast } from 'react-toastify';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -13,6 +13,7 @@ export default function CheckoutPage() {
   const { data: session } = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
     customerName: session?.user?.name || '',
     customerEmail: session?.user?.email || '',
@@ -21,14 +22,86 @@ export default function CheckoutPage() {
     city: '',
     state: 'Karnataka',
     pincode: '',
-    paymentMethod: 'cod'
+    paymentMethod: 'online' // Default to online payment only
   });
 
+  // Refs for scrolling to errors
+  const nameRef = useRef<HTMLInputElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const phoneRef = useRef<HTMLInputElement>(null);
+  const addressRef = useRef<HTMLTextAreaElement>(null);
+  const cityRef = useRef<HTMLInputElement>(null);
+  const pincodeRef = useRef<HTMLInputElement>(null);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [name]: value
     }));
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    let firstErrorRef: any = null;
+
+    if (!formData.customerName.trim()) {
+      newErrors.customerName = 'Name is required';
+      if (!firstErrorRef) firstErrorRef = nameRef;
+    }
+
+    if (!formData.customerEmail.trim()) {
+      newErrors.customerEmail = 'Email is required';
+      if (!firstErrorRef) firstErrorRef = emailRef;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.customerEmail)) {
+      newErrors.customerEmail = 'Please enter a valid email address';
+      if (!firstErrorRef) firstErrorRef = emailRef;
+    }
+
+    if (!formData.customerPhone.trim()) {
+      newErrors.customerPhone = 'Phone number is required';
+      if (!firstErrorRef) firstErrorRef = phoneRef;
+    } else if (!/^\d{10}$/.test(formData.customerPhone.replace(/\s/g, ''))) {
+      newErrors.customerPhone = 'Phone number must be 10 digits';
+      if (!firstErrorRef) firstErrorRef = phoneRef;
+    }
+
+    if (!formData.shippingAddress.trim()) {
+      newErrors.shippingAddress = 'Shipping address is required';
+      if (!firstErrorRef) firstErrorRef = addressRef;
+    }
+
+    if (!formData.city.trim()) {
+      newErrors.city = 'City is required';
+      if (!firstErrorRef) firstErrorRef = cityRef;
+    }
+
+    if (!formData.pincode.trim()) {
+      newErrors.pincode = 'Pincode is required';
+      if (!firstErrorRef) firstErrorRef = pincodeRef;
+    } else if (!/^\d{6}$/.test(formData.pincode)) {
+      newErrors.pincode = 'Pincode must be 6 digits';
+      if (!firstErrorRef) firstErrorRef = pincodeRef;
+    }
+
+    setErrors(newErrors);
+
+    // Scroll to first error
+    if (firstErrorRef && firstErrorRef.current) {
+      firstErrorRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      firstErrorRef.current.focus();
+      toast.error('Please fill in all required fields correctly');
+    }
+
+    return Object.keys(newErrors).length === 0;
   };
 
   // Razorpay payment integration
@@ -157,28 +230,7 @@ export default function CheckoutPage() {
     }
 
     // Validate form
-    if (!formData.customerName.trim()) {
-      toast.error('Please enter your name');
-      return;
-    }
-    if (!formData.customerEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.customerEmail)) {
-      toast.error('Please enter a valid email');
-      return;
-    }
-    if (!formData.customerPhone.trim() || !/^\d{10}$/.test(formData.customerPhone.replace(/\s/g, ''))) {
-      toast.error('Please enter a valid 10-digit phone number');
-      return;
-    }
-    if (!formData.shippingAddress.trim()) {
-      toast.error('Please enter your address');
-      return;
-    }
-    if (!formData.city.trim()) {
-      toast.error('Please enter your city');
-      return;
-    }
-    if (!formData.pincode.trim() || !/^\d{6}$/.test(formData.pincode)) {
-      toast.error('Please enter a valid 6-digit pincode');
+    if (!validateForm()) {
       return;
     }
 
@@ -328,37 +380,86 @@ export default function CheckoutPage() {
                 <h2 className="text-xl font-bold text-gray-900 mb-4">Contact Information</h2>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-gray-700 font-semibold mb-2">Full Name *</label>
+                    <label className="block text-gray-700 font-semibold mb-2">
+                      Full Name <span className="text-red-500">*</span>
+                    </label>
                     <input
+                      ref={nameRef}
                       type="text"
                       name="customerName"
                       value={formData.customerName}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-900"
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none transition-colors ${
+                        errors.customerName 
+                          ? 'border-red-500 bg-red-50 focus:border-red-600 animate-shake' 
+                          : 'border-gray-300 focus:border-gray-900'
+                      }`}
+                      placeholder="Enter your full name"
                     />
+                    {errors.customerName && (
+                      <p className="text-red-500 text-sm mt-1 flex items-center">
+                        <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                        {errors.customerName}
+                      </p>
+                    )}
                   </div>
                   <div>
-                    <label className="block text-gray-700 font-semibold mb-2">Phone *</label>
+                    <label className="block text-gray-700 font-semibold mb-2">
+                      Phone <span className="text-red-500">*</span>
+                    </label>
                     <input
+                      ref={phoneRef}
                       type="tel"
                       name="customerPhone"
                       value={formData.customerPhone}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-900"
+                      maxLength={10}
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none transition-colors ${
+                        errors.customerPhone 
+                          ? 'border-red-500 bg-red-50 focus:border-red-600 animate-shake' 
+                          : 'border-gray-300 focus:border-gray-900'
+                      }`}
+                      placeholder="9876543210"
                     />
+                    {errors.customerPhone && (
+                      <p className="text-red-500 text-sm mt-1 flex items-center">
+                        <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                        {errors.customerPhone}
+                      </p>
+                    )}
                   </div>
                   <div className="md:col-span-2">
-                    <label className="block text-gray-700 font-semibold mb-2">Email *</label>
+                    <label className="block text-gray-700 font-semibold mb-2">
+                      Email <span className="text-red-500">*</span>
+                    </label>
                     <input
+                      ref={emailRef}
                       type="email"
                       name="customerEmail"
                       value={formData.customerEmail}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-900"
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none transition-colors ${
+                        errors.customerEmail 
+                          ? 'border-red-500 bg-red-50 focus:border-red-600 animate-shake' 
+                          : 'border-gray-300 focus:border-gray-900'
+                      }`}
+                      placeholder="your@email.com"
                     />
+                    {errors.customerEmail && (
+                      <p className="text-red-500 text-sm mt-1 flex items-center">
+                        <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                        {errors.customerEmail}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -367,50 +468,111 @@ export default function CheckoutPage() {
                 <h2 className="text-xl font-bold text-gray-900 mb-4">Shipping Address</h2>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-gray-700 font-semibold mb-2">Address *</label>
+                    <label className="block text-gray-700 font-semibold mb-2">
+                      Address <span className="text-red-500">*</span>
+                    </label>
                     <textarea
+                      ref={addressRef}
                       name="shippingAddress"
                       value={formData.shippingAddress}
                       onChange={handleChange}
                       required
                       rows={3}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-900"
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none transition-colors resize-none ${
+                        errors.shippingAddress 
+                          ? 'border-red-500 bg-red-50 focus:border-red-600 animate-shake' 
+                          : 'border-gray-300 focus:border-gray-900'
+                      }`}
+                      placeholder="House No., Street, Area, Landmark"
                     />
+                    {errors.shippingAddress && (
+                      <p className="text-red-500 text-sm mt-1 flex items-center">
+                        <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                        {errors.shippingAddress}
+                      </p>
+                    )}
                   </div>
                   <div className="grid md:grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-gray-700 font-semibold mb-2">City *</label>
+                      <label className="block text-gray-700 font-semibold mb-2">
+                        City <span className="text-red-500">*</span>
+                      </label>
                       <input
+                        ref={cityRef}
                         type="text"
                         name="city"
                         value={formData.city}
                         onChange={handleChange}
                         required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-900"
+                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none transition-colors ${
+                          errors.city 
+                            ? 'border-red-500 bg-red-50 focus:border-red-600 animate-shake' 
+                            : 'border-gray-300 focus:border-gray-900'
+                        }`}
+                        placeholder="Your City"
                       />
+                      {errors.city && (
+                        <p className="text-red-500 text-sm mt-1 flex items-center">
+                          <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                          {errors.city}
+                        </p>
+                      )}
                     </div>
                     <div>
-                      <label className="block text-gray-700 font-semibold mb-2">State *</label>
-                      <input
-                        type="text"
+                      <label className="block text-gray-700 font-semibold mb-2">
+                        State <span className="text-red-500">*</span>
+                      </label>
+                      <select
                         name="state"
                         value={formData.state}
                         onChange={handleChange}
                         required
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-900"
-                      />
+                      >
+                        <option value="Karnataka">Karnataka</option>
+                        <option value="Maharashtra">Maharashtra</option>
+                        <option value="Tamil Nadu">Tamil Nadu</option>
+                        <option value="Kerala">Kerala</option>
+                        <option value="Delhi">Delhi</option>
+                        <option value="Gujarat">Gujarat</option>
+                        <option value="Rajasthan">Rajasthan</option>
+                        <option value="Andhra Pradesh">Andhra Pradesh</option>
+                        <option value="Telangana">Telangana</option>
+                        <option value="West Bengal">West Bengal</option>
+                        <option value="Other">Other</option>
+                      </select>
                     </div>
                     <div>
-                      <label className="block text-gray-700 font-semibold mb-2">Pincode *</label>
+                      <label className="block text-gray-700 font-semibold mb-2">
+                        Pincode <span className="text-red-500">*</span>
+                      </label>
                       <input
+                        ref={pincodeRef}
                         type="text"
                         name="pincode"
                         value={formData.pincode}
                         onChange={handleChange}
                         required
-                        pattern="[0-9]{6}"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-900"
+                        maxLength={6}
+                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none transition-colors ${
+                          errors.pincode 
+                            ? 'border-red-500 bg-red-50 focus:border-red-600 animate-shake' 
+                            : 'border-gray-300 focus:border-gray-900'
+                        }`}
+                        placeholder="560001"
                       />
+                      {errors.pincode && (
+                        <p className="text-red-500 text-sm mt-1 flex items-center">
+                          <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                          {errors.pincode}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -418,29 +580,43 @@ export default function CheckoutPage() {
 
               <div>
                 <h2 className="text-xl font-bold text-gray-900 mb-4">Payment Method</h2>
-                <div className="space-y-3">
-                  <label className="flex items-center space-x-3 p-4 border border-gray-300 rounded-lg cursor-pointer hover:border-gray-900">
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="cod"
-                      checked={formData.paymentMethod === 'cod'}
-                      onChange={handleChange}
-                      className="w-4 h-4 text-gray-900"
-                    />
-                    <span className="text-gray-700 font-semibold">Cash on Delivery</span>
-                  </label>
-                  <label className="flex items-center space-x-3 p-4 border border-gray-300 rounded-lg cursor-pointer hover:border-gray-900">
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="online"
-                      checked={formData.paymentMethod === 'online'}
-                      onChange={handleChange}
-                      className="w-4 h-4 text-gray-900"
-                    />
-                    <span className="text-gray-700 font-semibold">Online Payment (Razorpay)</span>
-                  </label>
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="flex-shrink-0 mt-1">
+                      <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+                        <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h4 className="font-bold text-gray-900 text-lg">Secure Online Payment</h4>
+                        <span className="bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">SAFE</span>
+                      </div>
+                      <p className="text-sm text-gray-700 mb-3">
+                        Pay securely using Razorpay payment gateway. 100% secure and encrypted.
+                      </p>
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        <span className="bg-white px-3 py-1.5 rounded-full text-xs font-semibold text-gray-700 border border-gray-200 shadow-sm">💳 Credit Card</span>
+                        <span className="bg-white px-3 py-1.5 rounded-full text-xs font-semibold text-gray-700 border border-gray-200 shadow-sm">💳 Debit Card</span>
+                        <span className="bg-white px-3 py-1.5 rounded-full text-xs font-semibold text-gray-700 border border-gray-200 shadow-sm">📱 UPI</span>
+                        <span className="bg-white px-3 py-1.5 rounded-full text-xs font-semibold text-gray-700 border border-gray-200 shadow-sm">🏦 Net Banking</span>
+                        <span className="bg-white px-3 py-1.5 rounded-full text-xs font-semibold text-gray-700 border border-gray-200 shadow-sm">👛 Wallets</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-4 mt-4">
+                  <div className="flex items-start gap-3">
+                    <svg className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                    <p className="text-sm text-yellow-800 font-semibold">
+                      Cash on Delivery is not available. We only accept online payments for faster order processing and confirmation.
+                    </p>
+                  </div>
                 </div>
               </div>
 
