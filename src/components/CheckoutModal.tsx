@@ -2,13 +2,16 @@
 
 import { useState, useRef } from 'react';
 import { X } from 'lucide-react';
+import { toast } from 'react-toastify';
 
 interface CheckoutModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: CheckoutData) => void;
+  onSubmit: (data: CheckoutData, discount: number, couponId?: string) => void;
   isProcessing?: boolean;
   orderTotal: number;
+  productId?: string;
+  categoryId?: string;
 }
 
 export interface CheckoutData {
@@ -22,7 +25,16 @@ export interface CheckoutData {
   paymentMethod: 'online' | 'cod';
 }
 
-export default function CheckoutModal({ isOpen, onClose, onSubmit, isProcessing, orderTotal }: CheckoutModalProps) {
+interface AppliedCoupon {
+  id: string;
+  code: string;
+  description: string | null;
+  discountType: string;
+  discountValue: number;
+  color: string | null;
+}
+
+export default function CheckoutModal({ isOpen, onClose, onSubmit, isProcessing, orderTotal, productId, categoryId }: CheckoutModalProps) {
   const [formData, setFormData] = useState<CheckoutData>({
     customerName: '',
     customerEmail: '',
@@ -35,6 +47,10 @@ export default function CheckoutModal({ isOpen, onClose, onSubmit, isProcessing,
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof CheckoutData, string>>>({});
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(null);
+  const [discount, setDiscount] = useState(0);
+  const [isValidating, setIsValidating] = useState(false);
 
   // Refs for scrolling to errors
   const nameRef = useRef<HTMLInputElement>(null);
@@ -101,7 +117,7 @@ export default function CheckoutModal({ isOpen, onClose, onSubmit, isProcessing,
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      onSubmit(formData);
+      onSubmit(formData, discount, appliedCoupon?.id);
     }
   };
 
@@ -110,6 +126,59 @@ export default function CheckoutModal({ isOpen, onClose, onSubmit, isProcessing,
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
+  };
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      toast.error('Please enter a coupon code');
+      return;
+    }
+
+    setIsValidating(true);
+    try {
+      const cartItems = [{
+        productId: productId || '',
+        categoryId: categoryId,
+        quantity: 1,
+        price: orderTotal
+      }];
+
+      const response = await fetch('/api/coupons/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: couponCode,
+          cartItems,
+          subtotal: orderTotal
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.valid) {
+        setAppliedCoupon(data.coupon);
+        setDiscount(data.discount);
+        toast.success(data.message);
+      } else {
+        toast.error(data.error || 'Invalid coupon code');
+      }
+    } catch (error) {
+      console.error('Error validating coupon:', error);
+      toast.error('Failed to validate coupon');
+    } finally {
+      setIsValidating(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setDiscount(0);
+    setCouponCode('');
+    toast.info('Coupon removed');
+  };
+
+  const getFinalTotal = () => {
+    return Math.max(0, orderTotal - discount);
   };
 
   if (!isOpen) return null;
@@ -135,10 +204,81 @@ export default function CheckoutModal({ isOpen, onClose, onSubmit, isProcessing,
         <form onSubmit={handleSubmit} className="p-6">
           {/* Order Summary */}
           <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4 mb-6 border border-gray-200">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-700 font-medium">Order Total:</span>
-              <span className="text-3xl font-bold text-gray-900">₹{orderTotal.toFixed(2)}</span>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-700 font-medium">Order Subtotal:</span>
+                <span className="text-xl font-semibold text-gray-900">₹{orderTotal.toFixed(2)}</span>
+              </div>
+              {discount > 0 && (
+                <div className="flex justify-between items-center text-green-600">
+                  <span className="font-medium">Discount:</span>
+                  <span className="text-xl font-semibold">-₹{discount.toFixed(2)}</span>
+                </div>
+              )}
+              <div className="border-t pt-2 flex justify-between items-center">
+                <span className="text-gray-700 font-semibold">Total Amount:</span>
+                <span className="text-3xl font-bold text-gray-900">₹{getFinalTotal().toFixed(2)}</span>
+              </div>
             </div>
+          </div>
+
+          {/* Coupon Section */}
+          <div className="mb-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+              </svg>
+              Have a Coupon Code?
+            </h3>
+            {!appliedCoupon ? (
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                  placeholder="Enter coupon code"
+                  className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  disabled={isValidating || isProcessing}
+                />
+                <button
+                  type="button"
+                  onClick={handleApplyCoupon}
+                  disabled={isValidating || isProcessing}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-semibold disabled:bg-gray-400 transition-colors"
+                >
+                  {isValidating ? 'Validating...' : 'Apply'}
+                </button>
+              </div>
+            ) : (
+              <div 
+                className="flex items-center justify-between p-3 rounded-lg border"
+                style={{ 
+                  backgroundColor: `${appliedCoupon.color}15`,
+                  borderColor: `${appliedCoupon.color}40`
+                }}
+              >
+                <div className="flex items-center gap-2">
+                  <div
+                    className="w-3 h-3 rounded-full"
+                    style={{ backgroundColor: appliedCoupon.color || '#8B5CF6' }}
+                  />
+                  <div>
+                    <div className="font-semibold text-sm text-gray-900">{appliedCoupon.code}</div>
+                    {appliedCoupon.description && (
+                      <div className="text-xs text-gray-600">{appliedCoupon.description}</div>
+                    )}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleRemoveCoupon}
+                  disabled={isProcessing}
+                  className="text-red-500 hover:text-red-600 text-sm font-semibold"
+                >
+                  Remove
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Personal Information */}
@@ -394,7 +534,7 @@ export default function CheckoutModal({ isOpen, onClose, onSubmit, isProcessing,
                   Processing...
                 </span>
               ) : (
-                `Place Order - ₹${orderTotal.toFixed(2)}`
+                `Place Order - ₹${getFinalTotal().toFixed(2)}`
               )}
             </button>
           </div>

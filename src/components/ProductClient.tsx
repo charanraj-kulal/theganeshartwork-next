@@ -201,7 +201,7 @@ export default function ProductClient({ product }: ProductClientProps) {
     setShowCheckoutModal(true);
   };
 
-  const handleCheckoutSubmit = async (checkoutData: CheckoutData) => {
+  const handleCheckoutSubmit = async (checkoutData: CheckoutData, discount: number = 0, couponId?: string) => {
     setIsProcessing(true);
 
     try {
@@ -217,6 +217,7 @@ export default function ProductClient({ product }: ProductClientProps) {
 
       const dbProduct = data.products[0];
       const orderNumber = `ORD-${Date.now()}`;
+      const finalTotal = Math.max(0, calculatedPrice * quantity - discount);
 
       // Create order
       const orderData = {
@@ -227,7 +228,9 @@ export default function ProductClient({ product }: ProductClientProps) {
           price: calculatedPrice,
         }],
         subtotal: calculatedPrice * quantity,
-        total: calculatedPrice * quantity,
+        total: finalTotal,
+        discount: discount,
+        ...(couponId && { couponId }),
       };
 
       const orderResponse = await fetch('/api/orders/create', {
@@ -434,6 +437,8 @@ export default function ProductClient({ product }: ProductClientProps) {
         onSubmit={handleCheckoutSubmit}
         isProcessing={isProcessing}
         orderTotal={calculatedPrice * quantity}
+        productId={product.id.toString()}
+        categoryId={product.categoryId}
       />
 
       {/* Loading Overlay */}

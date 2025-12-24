@@ -188,15 +188,15 @@ export default function CartPage() {
                       <div className="flex items-center border border-gray-300 rounded">
                         <button 
                           onClick={() => handleUpdateQuantity(item.productId, item.quantity - 1)}
-                          className="px-3 py-1 hover:bg-gray-100"
+                          className="px-3 py-1 hover:bg-gray-100 text-gray-700 font-semibold"
                           disabled={item.quantity <= 1}
                         >
                           -
                         </button>
-                        <span className="px-4 py-1 border-x">{item.quantity}</span>
+                        <span className="px-4 py-1 border-x text-gray-900 font-semibold">{item.quantity}</span>
                         <button 
                           onClick={() => handleUpdateQuantity(item.productId, item.quantity + 1)}
-                          className="px-3 py-1 hover:bg-gray-100"
+                          className="px-3 py-1 hover:bg-gray-100 text-gray-700 font-semibold"
                         >
                           +
                         </button>
@@ -238,21 +238,24 @@ export default function CartPage() {
                         value={couponCode}
                         onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                         placeholder="Enter code"
-                        className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                        className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-gray-900 focus:border-transparent"
                         disabled={isValidating}
                       />
                       <button
                         onClick={handleApplyCoupon}
                         disabled={isValidating}
-                        className="bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-semibold disabled:bg-gray-400"
+                        className="bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-semibold disabled:bg-gray-400 transition-colors"
                       >
                         {isValidating ? 'Validating...' : 'Apply'}
                       </button>
                     </div>
                   ) : (
                     <div 
-                      className="flex items-center justify-between p-3 rounded-lg"
-                      style={{ backgroundColor: `${appliedCoupon.color}20` }}
+                      className="flex items-center justify-between p-3 rounded-lg border"
+                      style={{ 
+                        backgroundColor: `${appliedCoupon.color}15`,
+                        borderColor: `${appliedCoupon.color}40`
+                      }}
                     >
                       <div className="flex items-center gap-2">
                         <div
@@ -260,7 +263,7 @@ export default function CartPage() {
                           style={{ backgroundColor: appliedCoupon.color || '#3B82F6' }}
                         />
                         <div>
-                          <div className="font-semibold text-sm">{appliedCoupon.code}</div>
+                          <div className="font-semibold text-sm text-gray-900">{appliedCoupon.code}</div>
                           {appliedCoupon.description && (
                             <div className="text-xs text-gray-600">{appliedCoupon.description}</div>
                           )}
@@ -277,22 +280,22 @@ export default function CartPage() {
                 </div>
 
                 <div className="space-y-3 mb-4">
-                  <div className="flex justify-between text-gray-600">
+                  <div className="flex justify-between text-gray-700">
                     <span>Subtotal ({items.length} items)</span>
-                    <span>₹{getTotalPrice()}</span>
+                    <span className="font-semibold text-gray-900">₹{getTotalPrice()}</span>
                   </div>
                   {discount > 0 && (
-                    <div className="flex justify-between text-green-600 font-semibold">
+                    <div className="flex justify-between text-green-600 font-semibold bg-green-50 px-3 py-2 rounded-lg">
                       <span>Discount</span>
                       <span>-₹{discount.toFixed(2)}</span>
                     </div>
                   )}
-                  <div className="flex justify-between text-gray-600">
+                  <div className="flex justify-between text-gray-700">
                     <span>Shipping</span>
                     <span className="text-green-600 font-semibold">FREE</span>
                   </div>
-                  <div className="border-t pt-3 flex justify-between font-bold text-lg">
-                    <span>Total</span>
+                  <div className="border-t pt-3 flex justify-between font-bold text-xl">
+                    <span className="text-gray-900">Total</span>
                     <span className="text-gray-900">₹{getFinalTotal().toFixed(2)}</span>
                   </div>
                 </div>

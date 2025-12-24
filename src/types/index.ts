@@ -6,6 +6,7 @@ export interface Product {
   image: string;
   images?: string; // JSON string of additional showcase images
   category: string;
+  categoryId?: string; // Category ID for coupon validation
   onSale: boolean;
   inStock: boolean;
   featured?: boolean;
