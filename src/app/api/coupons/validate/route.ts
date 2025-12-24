@@ -80,9 +80,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check applicable products
+    // Check applicability type and filter applicable items
     let applicableSubtotal = subtotal;
-    if (coupon.applicableProducts) {
+    const applicabilityType = coupon.applicabilityType || 'all';
+
+    if (applicabilityType === 'products' && coupon.applicableProducts) {
       try {
         const applicableProductIds = JSON.parse(coupon.applicableProducts);
         
@@ -108,6 +110,33 @@ export async function POST(req: NextRequest) {
         );
       } catch (error) {
         console.error('Error parsing applicable products:', error);
+      }
+    } else if (applicabilityType === 'categories' && coupon.applicableCategories) {
+      try {
+        const applicableCategoryIds = JSON.parse(coupon.applicableCategories);
+        
+        // Filter cart items for products in applicable categories
+        const applicableItems = cartItems.filter((item: any) => 
+          applicableCategoryIds.includes(item.categoryId)
+        );
+
+        if (applicableItems.length === 0) {
+          return NextResponse.json(
+            { 
+              error: 'This coupon is not applicable to items in your cart',
+              valid: false 
+            },
+            { status: 400 }
+          );
+        }
+
+        // Calculate subtotal for applicable products only
+        applicableSubtotal = applicableItems.reduce(
+          (sum: number, item: any) => sum + (item.price * item.quantity),
+          0
+        );
+      } catch (error) {
+        console.error('Error parsing applicable categories:', error);
       }
     }
 

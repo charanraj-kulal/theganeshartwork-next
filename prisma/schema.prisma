@@ -132,7 +132,9 @@ model Coupon {
   // Conditions
   minOrderAmount    Float?    // Minimum order amount to apply
   minQuantity       Int?      // Minimum quantity of items
+  applicabilityType String?   @default("all") // all, products, categories
   applicableProducts String?  // JSON array of product IDs
+  applicableCategories String? // JSON array of category IDs
   
   // Validity
   isActive          Boolean   @default(true)

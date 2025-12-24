@@ -61,7 +61,9 @@ export async function PUT(
       color,
       minOrderAmount,
       minQuantity,
+      applicabilityType,
       applicableProducts,
+      applicableCategories,
       isActive,
       startDate,
       endDate,
@@ -122,8 +124,12 @@ export async function PUT(
         ...(minQuantity !== undefined && { 
           minQuantity: minQuantity ? parseInt(minQuantity) : null 
         }),
+        ...(applicabilityType !== undefined && { applicabilityType }),
         ...(applicableProducts !== undefined && { 
           applicableProducts: applicableProducts ? JSON.stringify(applicableProducts) : null 
+        }),
+        ...(applicableCategories !== undefined && { 
+          applicableCategories: applicableCategories ? JSON.stringify(applicableCategories) : null 
         }),
         ...(isActive !== undefined && { isActive }),
         ...(startDate !== undefined && { startDate: startDate ? new Date(startDate) : null }),
