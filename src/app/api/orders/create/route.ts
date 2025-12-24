@@ -23,7 +23,9 @@ export async function POST(request: Request) {
       paymentMethod = 'cod',
       items,
       subtotal,
+      discount = 0,
       total,
+      couponId = null,
     } = body;
 
     // Validate required fields
@@ -32,6 +34,22 @@ export async function POST(request: Request) {
         { error: 'Missing required fields' },
         { status: 400 }
       );
+    }
+
+    // Get coupon code if couponId is provided
+    let couponCode = null;
+    if (couponId) {
+      try {
+        const coupon = await prisma.coupon.findUnique({
+          where: { id: couponId },
+          select: { code: true }
+        });
+        if (coupon) {
+          couponCode = coupon.code;
+        }
+      } catch (couponError) {
+        console.error('Failed to fetch coupon:', couponError);
+      }
     }
 
     // Create Razorpay order if payment method is online
@@ -75,11 +93,14 @@ export async function POST(request: Request) {
       state: state || 'Karnataka',
       pincode: pincode || '',
       subtotal: subtotal || total,
+      discount: discount,
       total: total,
       status: 'pending' as const,
       paymentStatus: paymentMethod === 'online' ? 'pending' : 'pending' as const,
       paymentMethod: paymentMethod,
       razorpayOrderId: razorpayOrderId,
+      couponId: couponId,
+      couponCode: couponCode,
       orderItems: {
         create: items.map((item: any) => ({
           productId: item.productId,
@@ -103,6 +124,23 @@ export async function POST(request: Request) {
         },
       },
     });
+
+    // Increment coupon usage count if a coupon was used
+    if (couponId) {
+      try {
+        await prisma.coupon.update({
+          where: { id: couponId },
+          data: {
+            usedCount: {
+              increment: 1
+            }
+          }
+        });
+      } catch (couponError) {
+        console.error('Failed to update coupon usage:', couponError);
+        // Don't fail the order if coupon update fails
+      }
+    }
 
     return NextResponse.json({
       success: true,

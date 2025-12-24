@@ -6,12 +6,25 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import Image from 'next/image';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+
+interface AppliedCoupon {
+  id: string;
+  code: string;
+  description: string | null;
+  discountType: string;
+  discountValue: number;
+  color: string | null;
+}
 
 export default function CartPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const { items, removeItem, updateQuantity, clearCart, getTotalPrice } = useCartStore();
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(null);
+  const [discount, setDiscount] = useState(0);
+  const [isValidating, setIsValidating] = useState(false);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -47,8 +60,63 @@ export default function CartPage() {
   const handleClearCart = () => {
     if (confirm('Are you sure you want to clear your cart?')) {
       clearCart();
+      setAppliedCoupon(null);
+      setDiscount(0);
+      setCouponCode('');
       toast.success('Cart cleared');
     }
+  };
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      toast.error('Please enter a coupon code');
+      return;
+    }
+
+    setIsValidating(true);
+    try {
+      const cartItems = items.map(item => ({
+        productId: item.productId,
+        quantity: item.quantity,
+        price: item.price
+      }));
+
+      const response = await fetch('/api/coupons/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: couponCode,
+          cartItems,
+          subtotal: getTotalPrice()
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.valid) {
+        setAppliedCoupon(data.coupon);
+        setDiscount(data.discount);
+        toast.success(data.message);
+      } else {
+        toast.error(data.error || 'Invalid coupon code');
+      }
+    } catch (error) {
+      console.error('Error validating coupon:', error);
+      toast.error('Failed to validate coupon');
+    } finally {
+      setIsValidating(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setDiscount(0);
+    setCouponCode('');
+    toast.info('Coupon removed');
+  };
+
+  const getFinalTotal = () => {
+    return Math.max(0, getTotalPrice() - discount);
   };
 
   return (
@@ -156,22 +224,79 @@ export default function CartPage() {
                 <h2 className="text-xl font-bold text-gray-900 mb-4">
                   Order Summary
                 </h2>
+                
+                {/* Coupon Section */}
+                <div className="mb-4 pb-4 border-b">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Have a coupon?
+                  </label>
+                  {!appliedCoupon ? (
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={couponCode}
+                        onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                        placeholder="Enter code"
+                        className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                        disabled={isValidating}
+                      />
+                      <button
+                        onClick={handleApplyCoupon}
+                        disabled={isValidating}
+                        className="bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-semibold disabled:bg-gray-400"
+                      >
+                        {isValidating ? 'Validating...' : 'Apply'}
+                      </button>
+                    </div>
+                  ) : (
+                    <div 
+                      className="flex items-center justify-between p-3 rounded-lg"
+                      style={{ backgroundColor: `${appliedCoupon.color}20` }}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: appliedCoupon.color || '#3B82F6' }}
+                        />
+                        <div>
+                          <div className="font-semibold text-sm">{appliedCoupon.code}</div>
+                          {appliedCoupon.description && (
+                            <div className="text-xs text-gray-600">{appliedCoupon.description}</div>
+                          )}
+                        </div>
+                      </div>
+                      <button
+                        onClick={handleRemoveCoupon}
+                        className="text-red-500 hover:text-red-600 text-sm font-semibold"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  )}
+                </div>
+
                 <div className="space-y-3 mb-4">
                   <div className="flex justify-between text-gray-600">
                     <span>Subtotal ({items.length} items)</span>
                     <span>₹{getTotalPrice()}</span>
                   </div>
+                  {discount > 0 && (
+                    <div className="flex justify-between text-green-600 font-semibold">
+                      <span>Discount</span>
+                      <span>-₹{discount.toFixed(2)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-gray-600">
                     <span>Shipping</span>
                     <span className="text-green-600 font-semibold">FREE</span>
                   </div>
                   <div className="border-t pt-3 flex justify-between font-bold text-lg">
                     <span>Total</span>
-                    <span className="text-gray-900">₹{getTotalPrice()}</span>
+                    <span className="text-gray-900">₹{getFinalTotal().toFixed(2)}</span>
                   </div>
                 </div>
                 <Link
-                  href="/checkout"
+                  href={`/checkout${appliedCoupon ? `?coupon=${appliedCoupon.id}&discount=${discount}` : ''}`}
                   className="w-full bg-gray-900 hover:bg-gray-800 text-white font-bold py-3 rounded-lg transition-colors mb-3 block text-center"
                 >
                   Proceed to Checkout

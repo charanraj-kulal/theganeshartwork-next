@@ -2,8 +2,8 @@
 
 import { useCartStore } from '@/store/cartStore';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { useState, useRef } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useRef, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -12,8 +12,14 @@ export default function CheckoutPage() {
   const { items, getTotalPrice, clearCart } = useCartStore();
   const { data: session } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  
+  // Get coupon info from URL params
+  const couponId = searchParams.get('coupon');
+  const couponDiscount = parseFloat(searchParams.get('discount') || '0');
+  
   const [formData, setFormData] = useState({
     customerName: session?.user?.name || '',
     customerEmail: session?.user?.email || '',
@@ -24,6 +30,10 @@ export default function CheckoutPage() {
     pincode: '',
     paymentMethod: 'online' // Default to online payment only
   });
+
+  const getFinalTotal = () => {
+    return Math.max(0, getTotalPrice() - couponDiscount);
+  };
 
   // Refs for scrolling to errors
   const nameRef = useRef<HTMLInputElement>(null);
@@ -116,7 +126,7 @@ export default function CheckoutPage() {
       script.onload = () => {
         const options = {
           key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_dummy',
-          amount: Math.round(order.total * 100), // Amount in paise
+          amount: Math.round(getFinalTotal() * 100), // Amount in paise
           currency: 'INR',
           name: 'Ganesh Artwork',
           description: `Order #${order.orderNumber}`,
@@ -281,7 +291,9 @@ export default function CheckoutPage() {
           ...formData,
           items: validItems,
           subtotal: getTotalPrice(),
-          total: getTotalPrice()
+          discount: couponDiscount,
+          total: getFinalTotal(),
+          couponId: couponId || null
         })
       });
 
@@ -660,13 +672,19 @@ export default function CheckoutPage() {
                   <span>Subtotal ({items.length} items)</span>
                   <span>₹{getTotalPrice()}</span>
                 </div>
+                {couponDiscount > 0 && (
+                  <div className="flex justify-between text-green-600 font-semibold">
+                    <span>Discount</span>
+                    <span>-₹{couponDiscount.toFixed(2)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-gray-600">
                   <span>Shipping</span>
                   <span className="text-green-600 font-semibold">FREE</span>
                 </div>
                 <div className="border-t pt-3 flex justify-between font-bold text-lg">
                   <span>Total</span>
-                  <span className="text-gray-900">₹{getTotalPrice()}</span>
+                  <span className="text-gray-900">₹{getFinalTotal().toFixed(2)}</span>
                 </div>
               </div>
             </div>

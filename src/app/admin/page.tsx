@@ -109,6 +109,12 @@ export default function AdminDashboard() {
           >
             View Orders
           </a>
+          <a
+            href="/admin/coupons"
+            className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-semibold"
+          >
+            Manage Coupons
+          </a>
         </div>
       </div>
     </div>
