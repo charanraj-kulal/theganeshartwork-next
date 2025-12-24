@@ -31,7 +31,8 @@
 3. Set Conditions (all optional):
    - **Min Order Amount**: e.g., 500 (coupon only works on orders ≥ ₹500)
    - **Min Quantity**: e.g., 2 (coupon needs at least 2 items in cart)
-   - **Applicable Products**: Select specific products (or leave empty for all)
+   - **Applies To**: Choose All Products, Specific Products, or Specific Categories
+   - **Select Products/Categories**: If specific, choose from the list (Select All available)
 
 4. Set Validity (all optional):
    - **Start Date**: When coupon becomes active

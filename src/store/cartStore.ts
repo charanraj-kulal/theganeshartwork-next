@@ -4,6 +4,7 @@ import { persist } from 'zustand/middleware';
 export interface CartItem {
   id: string | number;
   productId: string;
+  categoryId?: string; // Category ID for coupon validation
   name: string;
   slug: string;
   price: number;

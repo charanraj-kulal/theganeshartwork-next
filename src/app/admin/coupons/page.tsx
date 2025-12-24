@@ -104,7 +104,8 @@ export default function CouponsPage() {
     try {
       const response = await fetch('/api/categories');
       const data = await response.json();
-      setCategories(data.categories || []);
+      // API returns array directly, not wrapped in object
+      setCategories(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching categories:', error);
     }
