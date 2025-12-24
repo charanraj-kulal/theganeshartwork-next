@@ -3,12 +3,12 @@
 import { useCartStore } from '@/store/cartStore';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, Suspense } from 'react';
 import { toast } from 'react-toastify';
 import Link from 'next/link';
 import Image from 'next/image';
 
-export default function CheckoutPage() {
+function CheckoutContent() {
   const { items, getTotalPrice, clearCart } = useCartStore();
   const { data: session } = useSession();
   const router = useRouter();
@@ -712,5 +712,20 @@ export default function CheckoutPage() {
         </div>
       )}
     </main>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading checkout...</p>
+        </div>
+      </div>
+    }>
+      <CheckoutContent />
+    </Suspense>
   );
 }
